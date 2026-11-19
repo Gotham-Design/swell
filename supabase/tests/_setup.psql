@@ -1,0 +1,106 @@
+-- Shared fixture for the pgTAP files: included with \ir at the top of each, inside the
+-- file's own transaction, so everything here rolls back with it.
+--
+-- People: alice (owner of Acme), ed (editor at Acme), vic (viewer at Acme),
+--         bob (owner of Bravo, a stranger to Acme).
+-- Accounts at Acme: a_chk (checking), a_card (credit card) — money accounts;
+--   a_sales, a_draws, a_equip, a_uncat — from the standard chart;
+--   a_soft (Software, a custom expense).
+-- Accounts at Bravo: b_chk (money account), b_sales (standard Sales).
+
+create extension if not exists pgtap with schema extensions;
+
+create schema tests;
+grant usage on schema tests to authenticated, anon;
+
+-- Named ids, readable whatever role is active.
+create function tests.put(k text, v text) returns text language sql as
+  $$ select set_config('tests.' || k, v, false) $$;
+create function tests.id(k text) returns uuid language sql stable as
+  $$ select nullif(current_setting('tests.' || k, true), '')::uuid $$;
+
+create function tests.login(who text) returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', tests.id(who), 'role', 'authenticated')::text, true);
+  perform set_config('role', 'authenticated', true);
+end $$;
+create function tests.login_anon() returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
+  perform set_config('role', 'anon', true);
+end $$;
+
+-- Run as the logged-in user (security invoker), so RLS and grants apply.
+create function tests.add_account(biz text, p_name text, p_type public.account_type)
+returns uuid language sql as $$
+  insert into public.accounts (business_id, name, type) values (tests.id(biz), p_name, p_type) returning id
+$$;
+create function tests.add_money(biz text, p_name text, p_kind text, p_opening bigint default 0, p_date date default null)
+returns uuid language sql as $$
+  select public.create_money_account(tests.id(biz), p_name, p_kind, null, p_opening, p_date)
+$$;
+-- A seeded standard account by name.
+create function tests.std(biz text, p_name text) returns uuid language sql stable as $$
+  select id from public.accounts where business_id = tests.id(biz) and name = p_name and is_standard
+$$;
+
+create function tests.post(biz text, p_date date, money text, p_amount bigint, p_desc text, cat text default null)
+returns uuid language sql as $$
+  select public.post_transaction(tests.id(biz), p_date, tests.id(money), p_amount, p_desc, tests.id(cat))
+$$;
+
+-- update_transaction with every field carried over except the ones passed.
+create function tests.edit(
+  txn text, p_date date default null, p_amount bigint default null, cat text default null,
+  uncategorize boolean default false, p_memo text default null
+) returns uuid language plpgsql as $$
+declare t public.transactions;
+begin
+  select * into t from public.transactions where id = tests.id(txn);
+  return public.update_transaction(
+    tests.id(txn), coalesce(p_date, t.date), t.money_account_id, coalesce(p_amount, t.amount_cents),
+    t.description_raw,
+    case when uncategorize then null when cat is not null then tests.id(cat) else t.category_account_id end,
+    t.description_clean, t.vendor_normalized, coalesce(p_memo, t.memo), t.reference, t.dedupe_hash);
+end $$;
+
+-- Live (not soft-deleted) balance of an account, read through the balances view.
+create function tests.balance(acct text) returns bigint language sql stable as $$
+  select balance_cents from public.account_balances where account_id = tests.id(acct)
+$$;
+
+grant execute on all functions in schema tests to authenticated, anon;
+
+select tests.put('alice', 'aaaaaaaa-0000-0000-0000-000000000001'),
+       tests.put('ed',    'aaaaaaaa-0000-0000-0000-000000000002'),
+       tests.put('vic',   'aaaaaaaa-0000-0000-0000-000000000003'),
+       tests.put('bob',   'bbbbbbbb-0000-0000-0000-000000000001');
+
+insert into auth.users (instance_id, id, aud, role, email) values
+  ('00000000-0000-0000-0000-000000000000', tests.id('alice'), 'authenticated', 'authenticated', 'alice@example.com'),
+  ('00000000-0000-0000-0000-000000000000', tests.id('ed'),    'authenticated', 'authenticated', 'ed@example.com'),
+  ('00000000-0000-0000-0000-000000000000', tests.id('vic'),   'authenticated', 'authenticated', 'vic@example.com'),
+  ('00000000-0000-0000-0000-000000000000', tests.id('bob'),   'authenticated', 'authenticated', 'bob@example.com');
+
+select tests.login('alice');
+select tests.put('A', public.create_business('Acme')::text);
+insert into public.business_members (business_id, user_id, role) values
+  (tests.id('A'), tests.id('ed'), 'editor'),
+  (tests.id('A'), tests.id('vic'), 'viewer');
+
+select tests.login('bob');
+select tests.put('B', public.create_business('Bravo')::text);
+select tests.put('b_chk',   tests.add_money('B', 'Bravo Checking', 'checking')::text);
+select tests.put('b_sales', tests.std('B', 'Sales')::text);
+
+select tests.login('ed');
+select tests.put('a_chk',   tests.add_money('A', 'Acme Checking', 'checking')::text);
+select tests.put('a_card',  tests.add_money('A', 'Acme Visa', 'credit_card')::text);
+select tests.put('a_sales', tests.std('A', 'Sales')::text);
+select tests.put('a_soft',  tests.add_account('A', 'Software', 'expense')::text);
+select tests.put('a_draws', tests.std('A', 'Owner Draws')::text);
+select tests.put('a_equip', tests.std('A', 'Equipment')::text);
+select tests.put('a_uncat', (select id from public.accounts where business_id = tests.id('A') and subtype = 'uncategorized')::text);
+
+reset role;

@@ -1,0 +1,10 @@
+Description,,Summary Amt.
+Beginning balance as of 10/01/2026,,"1,234.56"
+Total credits,,"2,000.00"
+Total debits,,"-500.00"
+Ending balance as of 10/31/2026,,"2,734.56"
+
+Date,Description,Amount,Running Bal.
+10/01/2026,Beginning balance as of 10/01/2026,,"1,234.56"
+10/03/2026,"ZELLE PAYMENT FROM JANE DOE","2,000.00","3,234.56"
+10/05/2026,"PURCHASE AUTHORIZED ON 10/04 TARGET T-1234 MINNEAPOLIS MN CARD 4321","-500.00","2,734.56"

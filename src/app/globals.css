@@ -1,0 +1,237 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-hover: var(--brand-hover);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--card);
+  --color-surface-muted: var(--surface-muted);
+  --color-money-in: var(--money-in);
+  --color-money-in-text: var(--money-in-text);
+  --color-money-in-soft: var(--money-in-soft);
+  --color-money-out: var(--money-out);
+  --color-money-out-text: var(--money-out-text);
+  --color-money-out-soft: var(--money-out-soft);
+  --color-attention: var(--attention);
+  --color-attention-text: var(--attention-text);
+  --color-attention-soft: var(--attention-soft);
+  --color-bar-muted: var(--bar-muted);
+  --color-swatch-expense: var(--swatch-expense);
+  --color-swatch-other: var(--swatch-other);
+  --color-swatch-transfer: var(--swatch-transfer);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Always Green. Faint green canvas, white surfaces, evergreen for primary and focus.
+     Source of truth: Figma "MVP — Launch" > Dev notes. */
+  --canvas: #f3f6f4;
+  --surface-muted: #edf1ee;
+  --brand-hover: #0b3d2e;
+  --money-in: #12b886;
+  --money-in-text: #087f5b;
+  --money-in-soft: #e6f8f1;
+  --money-out: #e5484d;
+  --money-out-text: #c4302b;
+  --money-out-soft: #fdecec;
+  --attention: #d97706;
+  --attention-text: #b45309;
+  --attention-soft: #fdf3e7;
+  --scrim: rgb(15 31 23 / 0.18);
+  --bar-muted: #d5ded9;
+  --swatch-expense: #9db5a9;
+  --swatch-other: #c9d4ce;
+  --swatch-transfer: #dce5e0;
+
+  --background: var(--canvas);
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #0f4d3a;
+  --primary-foreground: #ffffff;
+  --secondary: var(--surface-muted);
+  --secondary-foreground: #18181b;
+  --muted: var(--surface-muted);
+  --muted-foreground: #71717a;
+  --accent: var(--surface-muted);
+  --accent-foreground: #18181b;
+  --destructive: #c4302b;
+  --border: #dedee0;
+  --input: #dedee0;
+  --ring: #0f4d3a;
+  --brand: #0f4d3a;
+  --brand-foreground: #ffffff;
+  --brand-soft: #e8f3ee;
+  --chart-1: var(--money-in);
+  --chart-2: var(--money-out);
+  --chart-3: var(--brand);
+  --chart-4: var(--attention);
+  --chart-5: #a1a1aa;
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #0f4d3a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8f3ee;
+  --sidebar-accent-foreground: #0f4d3a;
+  --sidebar-border: #dedee0;
+  --sidebar-ring: #0f4d3a;
+  /* Only the drawer, dialogs and the open sidebar cast a shadow. */
+  --overlay-shadow: 0 12px 40px -12px rgb(15 31 23 / 0.25), 0 2px 6px rgb(15 31 23 / 0.06);
+}
+
+/* Swell (trial rename). Navy for primary and focus, sky blue accent, teal for money in.
+   Flat: the logo's gradients stay in the logo. Turned on by data-theme="swell" on <html>
+   (src/app/layout.tsx, NEXT_PUBLIC_THEME). Remove the attribute to get Always Green back. */
+[data-theme="swell"] {
+  --canvas: #f4f6fa;
+  --surface-muted: #eceff6;
+  --brand-hover: #1b1847;
+  --money-in: #2a9d95;
+  --money-in-text: #137069;
+  --money-in-soft: #e3f5f3;
+  --scrim: rgb(39 35 97 / 0.2);
+  --bar-muted: #d6dbe8;
+  --swatch-expense: #30aee3;
+  --swatch-other: #a9c3e6;
+  --swatch-transfer: #dce1ee;
+
+  --foreground: #19173a;
+  --card-foreground: #19173a;
+  --popover-foreground: #19173a;
+  --primary: #272361;
+  --secondary-foreground: #19173a;
+  --muted-foreground: #646a83;
+  --accent-foreground: #19173a;
+  --border: #dfe2eb;
+  --input: #dfe2eb;
+  --ring: #272361;
+  --brand: #272361;
+  --brand-soft: #e6f4fb;
+  --chart-5: #30aee3;
+  --sidebar-foreground: #19173a;
+  --sidebar-primary: #272361;
+  --sidebar-accent: #e6f4fb;
+  --sidebar-accent-foreground: #272361;
+  --sidebar-border: #dfe2eb;
+  --sidebar-ring: #272361;
+  --overlay-shadow: 0 12px 40px -12px rgb(39 35 97 / 0.28), 0 2px 6px rgb(39 35 97 / 0.07);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    font-feature-settings: "cv11", "ss01";
+  }
+  input[type="checkbox"] {
+    accent-color: var(--brand);
+  }
+}
+
+/* A card: white, 1px border, radius 16, no shadow. */
+@utility surface {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+/* Drawer, dialogs and the open sidebar. */
+@utility overlay-shadow {
+  box-shadow: var(--overlay-shadow);
+}
+
+/* Sign-in demo: rows and cards rise into place, one after another. */
+@keyframes ag-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ag-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes ag-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes ag-caret {
+  50% { opacity: 0; }
+}
+.ag-rise { animation: ag-rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.ag-fill { animation: ag-fill 1.4s cubic-bezier(0.3, 0.6, 0.2, 1) both; transform-origin: left; }
+.ag-grow { animation: ag-grow 0.7s cubic-bezier(0.3, 0.6, 0.2, 1) both; transform-origin: bottom; }
+.ag-caret { animation: ag-caret 1s steps(1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .ag-rise, .ag-fill, .ag-grow, .ag-caret { animation: none; }
+}
+
+/* Scrolls, but shows no scrollbar (panels inside an already-scrollable page). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* An open overlay (the Ask panel) holds the page still behind it. The gutter keeps the
+   layout from shifting when the page's scrollbar goes away. */
+html {
+  scrollbar-gutter: stable;
+}
+html:has([data-scroll-lock]) {
+  overflow: hidden;
+}
